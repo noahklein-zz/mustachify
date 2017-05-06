@@ -1,4 +1,5 @@
 face-detection/
+out.jpg
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
