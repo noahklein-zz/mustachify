@@ -3,10 +3,20 @@ from PIL import Image
 import os
 import random
 import sys
+import requests
+import tempfile
 
 MUSTACHES = [Image.open('mustaches/' + m).convert('RGBA')
-             for m in os.listdir('mustaches')]
+             for m in os.listdir('mustaches')
+             if not m.startswith('.')]
 FACE_CASCADE = cv2.CascadeClassifier('frontalface.xml')
+
+
+def fetch_img(url):
+    temp = tempfile.NamedTemporaryFile(prefix='mustachify_')
+    response = requests.get(url)
+    temp.write(response.content)
+    return temp
 
 
 def faces(img_path):
@@ -29,14 +39,14 @@ def paste_mustache(img, pos):
     (x1, y1, x2, _) = pos
     mustache = random.choice(MUSTACHES)
     mustache_resize = resize_with_aspect_ratio(mustache, x2 - x1)
-    mustache_resize.load()
     img.paste(mustache_resize, (x1, y1), mustache_resize)
 
 
-img_path = sys.argv[1]
+tmp_img = fetch_img(sys.argv[1])
+img_path = tmp_img.name
 img = Image.open(img_path)
-
 for face_pos in faces(img_path):
     paste_mustache(img, face_pos)
 
 img.save('out.jpg', format="JPEG")
+# img.show()
